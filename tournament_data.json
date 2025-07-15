@@ -1,0 +1,36 @@
+{
+  "teams": [
+    {
+      "id": 1752590533081,
+      "name": "เทเล ทับบี้",
+      "logo": "blob:https://jaking6467.github.io/6fdf8ba4-8661-48b8-9768-a6acd981593b",
+      "matches": 0,
+      "wins": 0,
+      "draws": 0,
+      "losses": 0,
+      "points": 0
+    },
+    {
+      "id": 1752590545442,
+      "name": "INVINCIBLE",
+      "logo": "blob:https://jaking6467.github.io/c514b442-8a6d-44b4-91e2-a4a85112e695",
+      "matches": 0,
+      "wins": 0,
+      "draws": 0,
+      "losses": 0,
+      "points": 0
+    },
+    {
+      "id": 1752590580278,
+      "name": " Scizor",
+      "logo": "blob:https://jaking6467.github.io/681f74f4-47e1-4c22-a2e6-be737c553178",
+      "matches": 0,
+      "wins": 0,
+      "draws": 0,
+      "losses": 0,
+      "points": 0
+    }
+  ],
+  "matches": [],
+  "exportDate": "2025-07-15T14:43:20.873Z"
+}
