@@ -527,10 +527,27 @@
 
                 <div id="adminPanel" style="display: none;">
                     <div class="admin-panel">
+                        <h3>💡 คำแนะนำสำหรับ GitHub Pages</h3>
+                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                            <p><strong>เนื่องจาก GitHub Pages เป็น Static Site:</strong></p>
+                            <ul style="margin-left: 20px; line-height: 1.6;">
+                                <li>ข้อมูลจะเก็บใน localStorage ของแต่ละเบราว์เซอร์</li>
+                                <li>ใช้ปุ่ม "ส่งออกข้อมูล" เพื่อบันทึกเป็นไฟล์ JSON</li>
+                                <li>ใช้ปุ่ม "นำเข้าข้อมูล" เพื่อโหลดไฟล์ JSON</li>
+                                <li>แชร์ไฟล์ JSON กับคนอื่นเพื่อความเป็นเอกภาพ</li>
+                                <li>สำหรับเว็บที่ใช้ร่วมกัน แนะนำให้ใช้ Firebase/Supabase</li>
+                            </ul>
+                        </div>
+                    </div>
                         <h2>🔧 แผงควบคุมแอดมิน</h2>
                         <div class="admin-actions">
                             <button class="btn" onclick="showAddTeamModal()">➕ เพิ่มทีม</button>
                             <button class="btn" onclick="showAddMatchModal()">⚔️ เพิ่มการแข่งขัน</button>
+                            <button class="btn" onclick="exportData()">📥 ส่งออกข้อมูล</button>
+                            <label class="btn" style="cursor: pointer; background: #3498db;">
+                                📤 นำเข้าข้อมูล
+                                <input type="file" id="importFile" accept=".json" onchange="importData(event)" style="display: none;">
+                            </label>
                             <button class="btn danger" onclick="clearAllData()">🗑️ ล้างข้อมูลทั้งหมด</button>
                             <button class="btn" onclick="logout()">🚪 ออกจากระบบ</button>
                         </div>
@@ -1142,23 +1159,66 @@
             }
         }
 
-        // ฟังก์ชันบันทึกข้อมูล
+        // ฟังก์ชันสร้างข้อมูล JSON สำหรับดาวน์โหลด
+        function exportData() {
+            const data = {
+                teams: teams,
+                matches: matches,
+                exportDate: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'tournament_data.json';
+            link.click();
+            
+            URL.revokeObjectURL(url);
+            showMessage('ส่งออกข้อมูลสำเร็จ!', 'success');
+        }
+
+        // ฟังก์ชันโหลดข้อมูลจากไฟล์
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    teams = data.teams || [];
+                    matches = data.matches || [];
+                    updateTeamStats();
+                    updateAllDisplays();
+                    showMessage('นำเข้าข้อมูลสำเร็จ!', 'success');
+                } catch (error) {
+                    showMessage('ไฟล์ข้อมูลไม่ถูกต้อง!', 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // ฟังก์ชันบันทึกข้อมูล (ใช้ localStorage เฉพาะเซสชันปัจจุบัน)
         function saveData() {
             const data = {
                 teams: teams,
                 matches: matches
             };
-            // ในการใช้งานจริง ควรบันทึกลงฐานข้อมูล
-            // ตัวอย่างนี้ใช้ localStorage สำหรับการจำลอง
+            
+            // บันทึก localStorage เฉพาะเซสชันปัจจุบัน
             try {
                 localStorage.setItem('tournamentData', JSON.stringify(data));
             } catch (e) {
-                console.log('Cannot save to localStorage in this environment');
+                console.log('Cannot save to localStorage');
             }
         }
 
         // ฟังก์ชันโหลดข้อมูล
         function loadData() {
+            // โหลดจาก localStorage เฉพาะเซสชันปัจจุบัน
             try {
                 const data = localStorage.getItem('tournamentData');
                 if (data) {
@@ -1166,34 +1226,46 @@
                     teams = parsedData.teams || [];
                     matches = parsedData.matches || [];
                     updateTeamStats();
+                    return;
                 }
             } catch (e) {
-                console.log('Cannot load from localStorage in this environment');
-                // ข้อมูลตัวอย่างเมื่อไม่มี localStorage
-                teams = [
-                    {
-                        id: 1,
-                        name: 'ทีมพิกาจู',
-                        logo: 'https://via.placeholder.com/80x80/FFD700/000000?text=⚡',
-                        matches: 0,
-                        wins: 0,
-                        draws: 0,
-                        losses: 0,
-                        points: 0
-                    },
-                    {
-                        id: 2,
-                        name: 'ทีมชาริซาร์ด',
-                        logo: 'https://via.placeholder.com/80x80/FF6B35/FFFFFF?text=🔥',
-                        matches: 0,
-                        wins: 0,
-                        draws: 0,
-                        losses: 0,
-                        points: 0
-                    }
-                ];
-                matches = [];
+                console.log('Cannot load from localStorage');
             }
+            
+            // ข้อมูลตัวอย่างเริ่มต้น
+            teams = [
+                {
+                    id: 1,
+                    name: 'ทีมพิกาจู',
+                    logo: 'https://via.placeholder.com/80x80/FFD700/000000?text=⚡',
+                    matches: 0,
+                    wins: 0,
+                    draws: 0,
+                    losses: 0,
+                    points: 0
+                },
+                {
+                    id: 2,
+                    name: 'ทีมชาริซาร์ด',
+                    logo: 'https://via.placeholder.com/80x80/FF6B35/FFFFFF?text=🔥',
+                    matches: 0,
+                    wins: 0,
+                    draws: 0,
+                    losses: 0,
+                    points: 0
+                },
+                {
+                    id: 3,
+                    name: 'ทีมบลาสโทส',
+                    logo: 'https://via.placeholder.com/80x80/4A90E2/FFFFFF?text=💧',
+                    matches: 0,
+                    wins: 0,
+                    draws: 0,
+                    losses: 0,
+                    points: 0
+                }
+            ];
+            matches = [];
         }
 
         // ปิด modal เมื่อคลิกนอกพื้นที่
